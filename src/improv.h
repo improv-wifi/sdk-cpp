@@ -5,6 +5,7 @@
 #endif  // ARDUINO
 
 #include <cstdint>
+#include <functional>
 #include <string>
 #include <vector>
 
@@ -44,6 +45,14 @@ enum Command : uint8_t {
 };
 
 static const uint8_t CAPABILITY_IDENTIFY = 0x01;
+static const uint8_t IMPROV_SERIAL_VERSION = 1;
+
+enum ImprovSerialType : uint8_t {
+  TYPE_CURRENT_STATE = 0x01,
+  TYPE_ERROR_STATE = 0x02,
+  TYPE_RPC = 0x03,
+  TYPE_RPC_RESPONSE = 0x04
+};
 
 struct ImprovCommand {
   Command command;
@@ -53,6 +62,9 @@ struct ImprovCommand {
 
 ImprovCommand parse_improv_data(const std::vector<uint8_t> &data, bool check_checksum = true);
 ImprovCommand parse_improv_data(const uint8_t *data, size_t length, bool check_checksum = true);
+
+bool parse_improv_serial_byte(size_t position, uint8_t byte, const uint8_t *buffer,
+                              std::function<bool(ImprovCommand)> &&callback, std::function<void(Error)> &&on_error);
 
 std::vector<uint8_t> build_rpc_response(Command command, const std::vector<std::string> &datum,
                                         bool add_checksum = true);
