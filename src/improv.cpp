@@ -98,7 +98,7 @@ std::vector<uint8_t> build_rpc_response(Command command, const std::vector<std::
   std::vector<uint8_t> out;
   uint32_t length = 0;
   out.push_back(command);
-  for (auto str : datum) {
+  for (const auto &str : datum) {
     uint8_t len = str.length();
     length += len + 1;
     out.push_back(len);
@@ -122,7 +122,7 @@ std::vector<uint8_t> build_rpc_response(Command command, const std::vector<Strin
   std::vector<uint8_t> out;
   uint32_t length = 0;
   out.push_back(command);
-  for (auto str : datum) {
+  for (const auto &str : datum) {
     uint8_t len = str.length();
     length += len;
     out.push_back(len);
