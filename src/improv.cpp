@@ -34,10 +34,18 @@ ImprovCommand parse_improv_data(const uint8_t *data, size_t length, bool check_c
     uint8_t ssid_length = data[2];
     uint8_t ssid_start = 3;
     size_t ssid_end = ssid_start + ssid_length;
+    if (ssid_end > length) {
+      improv_command.command = UNKNOWN;
+      return improv_command;
+    }
 
     uint8_t pass_length = data[ssid_end];
     size_t pass_start = ssid_end + 1;
     size_t pass_end = pass_start + pass_length;
+    if (pass_end > length) {
+      improv_command.command = UNKNOWN;
+      return improv_command;
+    }
 
     std::string ssid(data + ssid_start, data + ssid_end);
     std::string password(data + pass_start, data + pass_end);
