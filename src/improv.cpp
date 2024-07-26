@@ -1,4 +1,5 @@
 #include "improv.h"
+#include <cstring>
 
 namespace improv {
 
@@ -103,16 +104,30 @@ bool parse_improv_serial_byte(size_t position, uint8_t byte, const uint8_t *buff
 }
 
 std::vector<uint8_t> build_rpc_response(Command command, const std::vector<std::string> &datum, bool add_checksum) {
-  std::vector<uint8_t> out;
-  uint32_t length = 0;
-  out.push_back(command);
-  for (const auto &str : datum) {
-    uint8_t len = str.length();
-    length += len + 1;
-    out.push_back(len);
-    out.insert(out.end(), str.begin(), str.end());
+  // Calculate the byte count to reserve memory to avoid reallocations
+  // Frame length fixed: 3 = Command: 1 + frame length: 1 + checksum: 1
+  size_t frame_length = 3;
+  // Frame length variable: string lengths: n + length of data in datum
+  frame_length += datum.size();
+  for (int i = 0; i < datum.size(); i++) {
+    frame_length += datum[i].length();
   }
-  out.insert(out.begin() + 1, length);
+  // Reserve frame_length bytes in vector
+  std::vector<uint8_t> out(frame_length, 0);
+
+  out[0] = command;
+
+  // Copy data from datum input to out vector with lengths
+  const size_t data_offset = 2;
+  size_t pos = data_offset;
+  for (const auto &str : datum) {
+    out[pos] = static_cast<uint8_t>(str.length());
+    pos++;
+    std::memcpy(out.data() + pos, str.c_str(), str.length());
+    pos += str.length();
+  }
+
+  out[1] = static_cast<uint8_t>(pos - data_offset);
 
   if (add_checksum) {
     uint32_t calculated_checksum = 0;
@@ -120,23 +135,39 @@ std::vector<uint8_t> build_rpc_response(Command command, const std::vector<std::
     for (uint8_t byte : out) {
       calculated_checksum += byte;
     }
-    out.push_back(calculated_checksum);
+    // Clear all bits, but the least significant byte
+    calculated_checksum &= 0xFF;
+    out[frame_length - 1] = static_cast<uint8_t>(calculated_checksum);
   }
   return out;
 }
 
 #ifdef ARDUINO
 std::vector<uint8_t> build_rpc_response(Command command, const std::vector<String> &datum, bool add_checksum) {
-  std::vector<uint8_t> out;
-  uint32_t length = 0;
-  out.push_back(command);
-  for (const auto &str : datum) {
-    uint8_t len = str.length();
-    length += len;
-    out.push_back(len);
-    out.insert(out.end(), str.begin(), str.end());
+  // Calculate the byte count to reserve memory to avoid reallocations
+  // Frame length fixed: 3 = Command: 1 + frame length: 1 + checksum: 1
+  size_t frame_length = 3;
+  // Frame length variable: string lengths: n + length of data in datum
+  frame_length += datum.size();
+  for (int i = 0; i < datum.size(); i++) {
+    frame_length += datum[i].length();
   }
-  out.insert(out.begin() + 1, length);
+  // Reserve frame_length bytes in vector
+  std::vector<uint8_t> out(frame_length, 0);
+
+  out[0] = command;
+
+  // Copy data from datum input to out vector with lengths
+  const size_t data_offset = 2;
+  size_t pos = data_offset;
+  for (const auto &str : datum) {
+    out[pos] = static_cast<uint8_t>(str.length());
+    pos++;
+    std::memcpy(out.data() + pos, str.c_str(), str.length());
+    pos += str.length();
+  }
+
+  out[1] = static_cast<uint8_t>(pos - data_offset);
 
   if (add_checksum) {
     uint32_t calculated_checksum = 0;
@@ -144,7 +175,9 @@ std::vector<uint8_t> build_rpc_response(Command command, const std::vector<Strin
     for (uint8_t byte : out) {
       calculated_checksum += byte;
     }
-    out.push_back(calculated_checksum);
+    // Clear all bits, but the least significant byte
+    calculated_checksum &= 0xFF;
+    out[frame_length - 1] = static_cast<uint8_t>(calculated_checksum);
   }
   return out;
 }
