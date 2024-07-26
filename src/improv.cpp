@@ -30,7 +30,7 @@ ImprovCommand parse_improv_data(const uint8_t *data, size_t length, bool check_c
     }
   }
 
-  if (command == WIFI_SETTINGS) {
+  if (command == WIFI_SETTINGS || command == SET_SERVER_AUTH) {
     uint8_t ssid_length = data[2];
     uint8_t ssid_start = 3;
     size_t ssid_end = ssid_start + ssid_length;
