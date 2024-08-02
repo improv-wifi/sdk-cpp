@@ -33,6 +33,7 @@ enum State : uint8_t {
   STATE_AUTHORIZED = 0x02,
   STATE_PROVISIONING = 0x03,
   STATE_PROVISIONED = 0x04,
+  STATE_SCANNING = 0x05,
 };
 
 enum Command : uint8_t {
