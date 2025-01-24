@@ -11,7 +11,7 @@ ImprovCommand parse_data_command(Command command, const uint8_t *data, size_t le
   ImprovCommand cmd;
   std::vector<std::vector<uint8_t>> data_fields;
   size_t field_start = 3;
-  size_t field_end;
+  size_t field_end = 0;
   do {
       size_t field_end = field_start + data[field_start - 1];
       if (field_end > length) {
