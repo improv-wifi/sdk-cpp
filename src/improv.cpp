@@ -1,5 +1,4 @@
 #include "improv.h"
-#include <stdio.h>
 #include <cstring>
 
 namespace improv {

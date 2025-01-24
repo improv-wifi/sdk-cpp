@@ -1,6 +1,5 @@
 #pragma once
 
-#include <stdint.h>
 #ifdef ARDUINO
 #include <Arduino.h>
 #endif  // ARDUINO
