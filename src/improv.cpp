@@ -11,16 +11,12 @@ ImprovCommand parse_improv_data(const std::vector<uint8_t> &data, bool check_che
 ImprovCommand parse_data_command(Command command, const uint8_t *data, size_t length) {
   std::vector<std::vector<uint8_t>> data_fields;
   size_t field_start = 3;
-  size_t field_end = 0;
-  do {
-      size_t field_end = field_start + data[field_start - 1];
-      printf("field_end: %zu\n", field_end);
-      if (field_end > length) {
-          return {.command = UNKNOWN};
-      }
+  size_t field_end = field_start + data[2];
+  while (field_end < length) {
       data_fields.push_back(std::vector<uint8_t>(data + field_start, data + field_end));
       field_start = field_end + 1;
-  } while (field_end < length);
+      field_end = field_start + data[field_start - 1];
+  };
   return {.command = command, .data = data_fields};
 }
 
@@ -48,7 +44,16 @@ ImprovCommand parse_improv_data(const uint8_t *data, size_t length, bool check_c
     }
   }
 
-  if (command == WIFI_SETTINGS || command == CUSTOM) {
+  if (command == WIFI_SETTINGS) {
+    improv_command = parse_data_command(command, data, length);
+    // There must be two data fields for the SSID and password
+    if (improv_command.data.size() != 2) {
+      improv_command.command = UNKNOWN;
+    }
+    return improv_command;
+  }
+
+  if (command == CUSTOM) {
     return parse_data_command(command, data, length);
   }
 
