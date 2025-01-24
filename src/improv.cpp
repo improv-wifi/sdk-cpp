@@ -1,4 +1,5 @@
 #include "improv.h"
+#include <stdio.h>
 #include <cstring>
 
 namespace improv {
@@ -8,15 +9,14 @@ ImprovCommand parse_improv_data(const std::vector<uint8_t> &data, bool check_che
 }
 
 ImprovCommand parse_data_command(Command command, const uint8_t *data, size_t length) {
-  ImprovCommand cmd;
   std::vector<std::vector<uint8_t>> data_fields;
   size_t field_start = 3;
   size_t field_end = 0;
   do {
       size_t field_end = field_start + data[field_start - 1];
+      printf("field_end: %zu\n", field_end);
       if (field_end > length) {
-          cmd.command = UNKNOWN;
-          return cmd;
+          return {.command = UNKNOWN};
       }
       data_fields.push_back(std::vector<uint8_t>(data + field_start, data + field_end));
       field_start = field_end + 1;
