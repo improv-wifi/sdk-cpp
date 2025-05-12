@@ -3,3 +3,7 @@ url: "https://improv-wifi.com"
 repository: "https://github.com/improv-wifi/sdk-cpp.git"
 files:
   use_gitngnore: true
+  exclude:
+    - library.json
+    - .clang-format
+    - .gitignore
