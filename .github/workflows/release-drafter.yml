@@ -6,12 +6,13 @@ on:
       - main
 
 permissions:
-  contents: write
+  contents: read
   pull-requests: read
 
 jobs:
   release-drafter:
     name: Release Drafter
+    environment: release-drafter
     runs-on: ubuntu-latest
     steps:
       - uses: release-drafter/release-drafter@v6
@@ -20,6 +21,8 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - uses: actions/checkout@v4
+        with:
+          ssh-key: ${{ secrets.DEPLOY_KEY }}
 
       - name: Update version files
         run: |
