@@ -21,9 +21,10 @@ jobs:
 
       - uses: actions/checkout@v4
 
-      - name: Set library.json version
+      - name: Update version files
         run: |
           sed -i "s/\"version\": .*/\"version\": \"${{ steps.drafter.outputs.resolved_version }}\",/g" library.json
+          sed -i "s/improv VERSION .*)/improv VERSION ${{ steps.drafter.outputs.resolved_version }})/g" CMakeLists.txt
 
       - name: Commit changes
         run: |
