@@ -8,4 +8,4 @@ if(ESP_PLATFORM)
 	return()
 endif()
 
-project(improv VERSION )
+project(improv VERSION 1.2.5)
