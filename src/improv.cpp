@@ -81,10 +81,10 @@ bool parse_improv_serial_byte(size_t position, uint8_t byte, const uint8_t *buff
   uint8_t type = buffer[7];
   uint8_t data_len = buffer[8];
 
-  if (position <= 8 + data_len)
+  if (position <= 8u + data_len)
     return true;
 
-  if (position == 8 + data_len + 1) {
+  if (position == 8u + data_len + 1) {
     uint8_t checksum = 0x00;
     for (size_t i = 0; i < position; i++)
       checksum += buffer[i];
@@ -109,7 +109,7 @@ std::vector<uint8_t> build_rpc_response(Command command, const std::vector<std::
   size_t frame_length = 3;
   // Frame length variable: string lengths: n + length of data in datum
   frame_length += datum.size();
-  for (int i = 0; i < datum.size(); i++) {
+  for (uint32_t i = 0; i < datum.size(); i++) {
     frame_length += datum[i].length();
   }
   // Reserve frame_length bytes in vector
@@ -149,7 +149,7 @@ std::vector<uint8_t> build_rpc_response(Command command, const std::vector<Strin
   size_t frame_length = 3;
   // Frame length variable: string lengths: n + length of data in datum
   frame_length += datum.size();
-  for (int i = 0; i < datum.size(); i++) {
+  for (uint32_t i = 0; i < datum.size(); i++) {
     frame_length += datum[i].length();
   }
   // Reserve frame_length bytes in vector
