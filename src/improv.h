@@ -53,7 +53,7 @@ static const uint8_t CAPABILITY_GET_DEVICE_INFO = 1 << 1;
 static const uint8_t CAPABILITY_GET_WIFI_NETWORKS = 1 << 2;
 static const uint8_t CAPABILITY_HOSTNAME = 1 << 3;
 static const uint8_t CAPABILITY_DEVICE_NAME = 1 << 4;
-static const uint8_t IMPROV_SERIAL_VERSION = 2;
+static const uint8_t IMPROV_SERIAL_VERSION = 1;
 
 enum ImprovSerialType : uint8_t {
   TYPE_CURRENT_STATE = 0x01,
