@@ -42,10 +42,26 @@ enum Command : uint8_t {
   GET_CURRENT_STATE = 0x02,
   GET_DEVICE_INFO = 0x03,
   GET_WIFI_NETWORKS = 0x04,
+  // 0x05 (Get/Set Hostname) and 0x06 (Get/Set Device Name) are reserved by the Improv spec.
+  GET_CAPABILITIES = 0x07,
   BAD_CHECKSUM = 0xFF,
 };
 
-static const uint8_t CAPABILITY_IDENTIFY = 0x01;
+// Device capability bitmask. Advertised over BLE (CAPABILITIES characteristic / service data) and
+// returned in the first byte of a GET_CAPABILITIES serial RPC response. When CAPABILITY_ONLINE is
+// set in the serial response, any reachable device URL(s) follow as subsequent string elements.
+//
+// CAPABILITY_ONLINE is dynamic (current connectivity); the others are static device facts. A live
+// query (serial GET_CAPABILITIES) always reflects current ONLINE state; the BLE capabilities value
+// is set at setup, so a device must update/notify it for ONLINE to be meaningful over BLE.
+enum Capability : uint8_t {
+  CAPABILITY_IDENTIFY = 0x01,  // device can identify itself (e.g. flash an LED) on request
+  CAPABILITY_ONLINE = 0x02,    // device currently has network connectivity via any interface
+  CAPABILITY_WIFI = 0x04,      // Wi-Fi is supported (hardware present; may be disabled)
+  CAPABILITY_ETHERNET = 0x08,  // Ethernet is supported
+  CAPABILITY_THREAD = 0x10,    // Thread is supported
+  CAPABILITY_MODEM = 0x20,     // Cellular modem is supported
+};
 static const uint8_t IMPROV_SERIAL_VERSION = 1;
 
 enum ImprovSerialType : uint8_t {
