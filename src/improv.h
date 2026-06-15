@@ -42,7 +42,8 @@ enum Command : uint8_t {
   GET_CURRENT_STATE = 0x02,
   GET_DEVICE_INFO = 0x03,
   GET_WIFI_NETWORKS = 0x04,
-  // 0x05 (Get/Set Hostname) and 0x06 (Get/Set Device Name) are reserved by the Improv spec.
+  GET_SET_HOSTNAME = 0x05,
+  GET_SET_DEVICE_NAME = 0x06,
   GET_CAPABILITIES = 0x07,
   BAD_CHECKSUM = 0xFF,
 };
