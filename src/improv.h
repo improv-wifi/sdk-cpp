@@ -44,24 +44,22 @@ enum Command : uint8_t {
   GET_WIFI_NETWORKS = 0x04,
   GET_SET_HOSTNAME = 0x05,
   GET_SET_DEVICE_NAME = 0x06,
-  GET_CAPABILITIES = 0x07,
+  GET_NETWORK_STATE = 0x07,
   BAD_CHECKSUM = 0xFF,
 };
 
-// Device capability bitmask. Advertised over BLE (CAPABILITIES characteristic / service data) and
-// returned in the first byte of a GET_CAPABILITIES serial RPC response. When CAPABILITY_ONLINE is
-// set in the serial response, any reachable device URL(s) follow as subsequent string elements.
-//
-// CAPABILITY_ONLINE is dynamic (current connectivity); the others are static device facts. A live
-// query (serial GET_CAPABILITIES) always reflects current ONLINE state; the BLE capabilities value
-// is set at setup, so a device must update/notify it for ONLINE to be meaningful over BLE.
-enum Capability : uint8_t {
-  CAPABILITY_IDENTIFY = 0x01,  // device can identify itself (e.g. flash an LED) on request
-  CAPABILITY_ONLINE = 0x02,    // device currently has network connectivity via any interface
-  CAPABILITY_WIFI = 0x04,      // Wi-Fi is supported (hardware present; may be disabled)
-  CAPABILITY_ETHERNET = 0x08,  // Ethernet is supported
-  CAPABILITY_THREAD = 0x10,    // Thread is supported
-  CAPABILITY_MODEM = 0x20,     // Cellular modem is supported
+static const uint8_t CAPABILITY_IDENTIFY = 0x01;
+
+// Network-state flags, returned in the first byte of a GET_NETWORK_STATE (0x07) RPC response. This
+// is a separate bitfield from the BLE capabilities bitmask (which reports supported RPC commands).
+// NETWORK_IS_ONLINE is dynamic (current connectivity); the SUPPORTS_* bits report which interfaces
+// the device has. When NETWORK_IS_ONLINE is set, reachable device URL(s) follow as later elements.
+enum NetworkState : uint8_t {
+  NETWORK_IS_ONLINE = 1 << 0,          // device currently has network connectivity via any interface
+  NETWORK_SUPPORTS_WIFI = 1 << 1,      // Wi-Fi interface present (may be disabled)
+  NETWORK_SUPPORTS_ETHERNET = 1 << 2,  // Ethernet interface present
+  NETWORK_SUPPORTS_THREAD = 1 << 3,    // Thread interface present
+  NETWORK_SUPPORTS_MODEM = 1 << 4,     // Cellular modem present
 };
 static const uint8_t IMPROV_SERIAL_VERSION = 1;
 
