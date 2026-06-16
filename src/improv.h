@@ -45,10 +45,23 @@ enum Command : uint8_t {
   GET_WIFI_NETWORKS = 0x04,
   HOSTNAME = 0x05,
   DEVICE_NAME = 0x06,
+  GET_NETWORK_STATE = 0x07,
   BAD_CHECKSUM = 0xFF,
 };
 
 static const uint8_t CAPABILITY_IDENTIFY = 0x01;
+
+// Network-state flags, returned in the first byte of a GET_NETWORK_STATE (0x07) RPC response. This
+// is a separate bitfield from the BLE capabilities bitmask (which reports supported RPC commands).
+// NETWORK_IS_ONLINE is dynamic (current connectivity); the SUPPORTS_* bits report which interfaces
+// the device has. When NETWORK_IS_ONLINE is set, reachable device URL(s) follow as later elements.
+enum NetworkState : uint8_t {
+  NETWORK_IS_ONLINE = 1 << 0,          // device currently has network connectivity via any interface
+  NETWORK_SUPPORTS_WIFI = 1 << 1,      // Wi-Fi interface present (may be disabled)
+  NETWORK_SUPPORTS_ETHERNET = 1 << 2,  // Ethernet interface present
+  NETWORK_SUPPORTS_THREAD = 1 << 3,    // Thread interface present
+  NETWORK_SUPPORTS_MODEM = 1 << 4,     // Cellular modem present
+};
 static const uint8_t IMPROV_SERIAL_VERSION = 1;
 
 enum ImprovSerialType : uint8_t {
