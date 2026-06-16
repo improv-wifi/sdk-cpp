@@ -51,6 +51,17 @@ ImprovCommand parse_improv_data(const uint8_t *data, size_t length, bool check_c
     std::string ssid(data + ssid_start, data + ssid_end);
     std::string password(data + pass_start, data + pass_end);
     return {.command = command, .ssid = ssid, .password = password};
+  } else if ((command == HOSTNAME || command == DEVICE_NAME) && data[2] > 0) {
+    uint8_t name_length = data[2];
+    uint8_t name_start = 3;
+    size_t name_end = name_start + name_length;
+    if (name_end > length) {
+      improv_command.command = UNKNOWN;
+      return improv_command;
+    }
+
+    std::string name(data + name_start, data + name_end);
+    return {.command = command, .name = name};
   }
 
   improv_command.command = command;
