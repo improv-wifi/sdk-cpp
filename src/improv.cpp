@@ -142,38 +142,6 @@ std::vector<uint8_t> build_rpc_response(Command command, const std::vector<std::
   return out;
 }
 
-#if defined(__cpp_lib_span)
-bool RpcResponseBuilder::add_string(const char *str) { return this->add_string(str, strlen(str)); }
-
-bool RpcResponseBuilder::add_string(const char *str, size_t length) {
-  // The length byte and string bytes must fit in the payload budget covered by the
-  // single byte data length field, so the last usable position is one before the
-  // trailing checksum byte
-  if (this->pos_ + 1 + length > RPC_RESPONSE_MAX_SIZE - 1)
-    return false;
-  this->buf_[this->pos_++] = static_cast<uint8_t>(length);
-  std::memcpy(this->buf_.data() + this->pos_, str, length);
-  this->pos_ += length;
-  return true;
-}
-
-std::span<const uint8_t> RpcResponseBuilder::finish(bool add_checksum) {
-  this->buf_[1] = static_cast<uint8_t>(this->pos_ - 2);
-
-  uint8_t trailing = 0;
-  if (add_checksum) {
-    uint32_t calculated_checksum = 0;
-    for (size_t i = 0; i < this->pos_; i++) {
-      calculated_checksum += this->buf_[i];
-    }
-    // Clear all bits, but the least significant byte
-    trailing = static_cast<uint8_t>(calculated_checksum & 0xFF);
-  }
-  this->buf_[this->pos_++] = trailing;
-  return std::span<const uint8_t>(this->buf_.data(), this->pos_);
-}
-#endif  // __cpp_lib_span
-
 #ifdef ARDUINO
 std::vector<uint8_t> build_rpc_response(Command command, const std::vector<String> &datum, bool add_checksum) {
   // Calculate the byte count to reserve memory to avoid reallocations

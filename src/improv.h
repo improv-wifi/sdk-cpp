@@ -18,6 +18,7 @@
 #endif
 
 #if defined(__cpp_lib_span)
+#include <cstring>
 #include <span>
 #endif  // __cpp_lib_span
 
@@ -109,22 +110,53 @@ inline constexpr size_t RPC_RESPONSE_MAX_SIZE = 258;
 // Builds an RPC response into a caller-provided buffer with no heap allocation.
 // Produces byte-identical output to build_rpc_response(): the trailing byte is the
 // checksum when requested and 0x00 otherwise.
+// Defined inline so the API is fully contained in the header; a consumer compiling
+// improv.cpp at a different language standard than its own sources cannot end up
+// with a declared class whose methods were never emitted.
 class RpcResponseBuilder {
  public:
   RpcResponseBuilder(std::span<uint8_t, RPC_RESPONSE_MAX_SIZE> buf, Command command) : buf_(buf) { buf_[0] = command; }
 
   // Appends one string entry (length byte + string bytes). Returns false and appends
-  // nothing if the string does not fit in the response's 255 byte payload budget.
-  bool add_string(const char *str);  // NUL-terminated
-  bool add_string(const char *str, size_t length);
+  // nothing if the string does not fit in the response's 255 byte payload budget or
+  // the response is already finished.
+  bool add_string(const char *str) { return this->add_string(str, strlen(str)); }  // NUL-terminated
+  bool add_string(const char *str, size_t length) {
+    // The length byte and string bytes must fit in the payload budget covered by the
+    // single byte data length field; the length range test also rejects out of range
+    // values that could otherwise wrap the position arithmetic
+    if (this->finished_ || length >= RPC_RESPONSE_MAX_SIZE || this->pos_ + 1 + length > RPC_RESPONSE_MAX_SIZE - 1)
+      return false;
+    this->buf_[this->pos_++] = static_cast<uint8_t>(length);
+    std::memcpy(this->buf_.data() + this->pos_, str, length);
+    this->pos_ += length;
+    return true;
+  }
 
   // Writes the data length and trailing byte, then returns the finished response bytes.
-  // Call at most once; the builder must not be reused afterwards.
-  std::span<const uint8_t> finish(bool add_checksum = true);
+  // Safe to call again; later calls return the already finished response.
+  std::span<const uint8_t> finish(bool add_checksum = true) {
+    if (!this->finished_) {
+      this->finished_ = true;
+      this->buf_[1] = static_cast<uint8_t>(this->pos_ - 2);
+      uint8_t trailing = 0;
+      if (add_checksum) {
+        uint32_t calculated_checksum = 0;
+        for (size_t i = 0; i < this->pos_; i++) {
+          calculated_checksum += this->buf_[i];
+        }
+        // Clear all bits, but the least significant byte
+        trailing = static_cast<uint8_t>(calculated_checksum & 0xFF);
+      }
+      this->buf_[this->pos_++] = trailing;
+    }
+    return std::span<const uint8_t>(this->buf_.data(), this->pos_);
+  }
 
  private:
   std::span<uint8_t, RPC_RESPONSE_MAX_SIZE> buf_;
   uint16_t pos_{2};  // max 258, fits uint16_t
+  bool finished_{false};
 };
 #endif  // __cpp_lib_span
 
