@@ -9,6 +9,14 @@
 #include <string>
 #include <vector>
 
+// <version> defines the library feature test macros; without it __cpp_lib_span is
+// only defined once <span> itself has been included
+#if defined(__has_include)
+#if __has_include(<version>)
+#include <version>
+#endif
+#endif
+
 #if defined(__cpp_lib_span)
 #include <span>
 #endif  // __cpp_lib_span
