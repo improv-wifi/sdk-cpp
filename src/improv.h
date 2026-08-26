@@ -9,6 +9,10 @@
 #include <string>
 #include <vector>
 
+#if defined(__cpp_lib_span)
+#include <span>
+#endif  // __cpp_lib_span
+
 namespace improv {
 
 static const char *const SERVICE_UUID = "00467768-6228-2272-4663-277478268000";
@@ -88,5 +92,32 @@ std::vector<uint8_t> build_rpc_response(Command command, const std::vector<std::
 #ifdef ARDUINO
 std::vector<uint8_t> build_rpc_response(Command command, const std::vector<String> &datum, bool add_checksum = true);
 #endif  // ARDUINO
+
+#if defined(__cpp_lib_span)
+// Maximum encoded RPC response size: command (1) + data length (1) + string data (up to 255,
+// the data length field is a single byte) + trailing checksum byte (1)
+inline constexpr size_t RPC_RESPONSE_MAX_SIZE = 258;
+
+// Builds an RPC response into a caller-provided buffer with no heap allocation.
+// Produces byte-identical output to build_rpc_response(): the trailing byte is the
+// checksum when requested and 0x00 otherwise.
+class RpcResponseBuilder {
+ public:
+  RpcResponseBuilder(std::span<uint8_t, RPC_RESPONSE_MAX_SIZE> buf, Command command) : buf_(buf) { buf_[0] = command; }
+
+  // Appends one string entry (length byte + string bytes). Returns false and appends
+  // nothing if the string does not fit in the response's 255 byte payload budget.
+  bool add_string(const char *str);  // NUL-terminated
+  bool add_string(const char *str, size_t length);
+
+  // Writes the data length and trailing byte, then returns the finished response bytes.
+  // Call at most once; the builder must not be reused afterwards.
+  std::span<const uint8_t> finish(bool add_checksum = true);
+
+ private:
+  std::span<uint8_t, RPC_RESPONSE_MAX_SIZE> buf_;
+  uint16_t pos_{2};  // max 258, fits uint16_t
+};
+#endif  // __cpp_lib_span
 
 }  // namespace improv
